@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SEEDS } from "../constants/seeds";
 
 interface Seed {
@@ -8,8 +8,15 @@ interface Seed {
 
 const SeedsStock: React.FC = () => {
   const [seeds, setSeeds] = useState<Seed[]>([]);
+  const [previousSeeds, setPreviousSeeds] = useState<Seed[]>([]);
   const [timeUntilUpdate, setTimeUntilUpdate] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
+  const updateIntervalRef = useRef<number | null>(null);
+  const lastFetchTimeRef = useRef<number>(0);
+  const hasInitialLoadedRef = useRef<boolean>(false);
+  const previousSeedsRef = useRef<Seed[]>([]);
 
   // Function to get the next 5-minute interval timestamp
   const getNextFiveMinuteInterval = (): number => {
@@ -40,19 +47,43 @@ const SeedsStock: React.FC = () => {
     return currentUpdate.getTime();
   };
 
-  // Function to check if we should fetch data for the current 5-minute interval
-  const shouldFetchForCurrentInterval = (): boolean => {
-    const currentInterval = getCurrentFiveMinuteInterval();
-    const lastFetchedInterval = localStorage.getItem(
-      "SEEDS_STOCK_LAST_INTERVAL"
-    );
+  // Function to check if we should fetch at a 5-minute interval
+  const shouldFetchAtFiveMinuteMark = (): boolean => {
+    const now = new Date();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
 
-    if (!lastFetchedInterval) {
-      return true;
+    // Check if we're at a 5-minute mark (0, 5, 10, 15, etc.) and within the first 5 seconds
+    const isAtMark = minutes % 5 === 0 && seconds <= 5;
+
+    if (isAtMark) {
+      // Get the current 5-minute interval timestamp
+      const currentInterval = getCurrentFiveMinuteInterval();
+
+      // Only fetch if we haven't fetched for this interval yet
+      if (currentInterval !== lastFetchTimeRef.current) {
+        console.log(
+          `5-minute mark detected: minutes=${minutes}, seconds=${seconds}`
+        );
+        lastFetchTimeRef.current = currentInterval;
+        return true;
+      }
     }
 
-    const lastFetchedTimestamp = parseInt(lastFetchedInterval);
-    return currentInterval > lastFetchedTimestamp;
+    return false;
+  };
+
+  // Function to compare if two seed arrays are the same
+  const areSeedsEqual = (seeds1: Seed[], seeds2: Seed[]): boolean => {
+    if (seeds1.length !== seeds2.length) return false;
+
+    // Sort both arrays by name for comparison
+    const sorted1 = [...seeds1].sort((a, b) => a.name.localeCompare(b.name));
+    const sorted2 = [...seeds2].sort((a, b) => a.name.localeCompare(b.name));
+
+    console.log(sorted1, sorted2);
+
+    return JSON.stringify(sorted1) === JSON.stringify(sorted2);
   };
 
   // Function to sort seeds based on the order defined in constants/seeds.ts
@@ -71,53 +102,100 @@ const SeedsStock: React.FC = () => {
     });
   };
 
+  // Function to clear the update interval
+  const clearUpdateInterval = (): void => {
+    if (updateIntervalRef.current) {
+      clearInterval(updateIntervalRef.current);
+      updateIntervalRef.current = null;
+    }
+  };
+
+  // Function to start the 15-second update interval
+  const startUpdateInterval = (): void => {
+    clearUpdateInterval();
+    updateIntervalRef.current = setInterval(() => {
+      fetchSeeds(true);
+    }, 15000);
+  };
+
   // Function to fetch seeds from API
-  const fetchSeeds = async (): Promise<void> => {
+  const fetchSeeds = async (isRetry: boolean = false): Promise<void> => {
+    console.log(
+      `fetchSeeds called - isRetry: ${isRetry}, hasInitialLoaded: ${hasInitialLoadedRef.current}`
+    );
     try {
+      if (!isRetry && hasInitialLoadedRef.current) {
+        setIsUpdating(true);
+      }
+
       const response = await fetch("https://gagapi.onrender.com/seeds");
       if (response.ok) {
         const data: Seed[] = await response.json();
-        console.log(data);
-        const sortedSeeds = sortSeedsByDefinedOrder(data);
-        setSeeds(sortedSeeds);
-        localStorage.setItem("SEEDS_STOCK", JSON.stringify(sortedSeeds));
-        localStorage.setItem("SEEDS_STOCK_LAST_REQUEST", Date.now().toString());
-        localStorage.setItem(
-          "SEEDS_STOCK_LAST_INTERVAL",
-          getCurrentFiveMinuteInterval().toString()
-        );
+        console.log("Fetched data:", data);
+
+        if (!hasInitialLoadedRef.current) {
+          // Initial load - save data as baseline for future comparisons
+          const sortedSeeds = sortSeedsByDefinedOrder(data);
+          setSeeds(sortedSeeds);
+          setPreviousSeeds(data); // Keep state in sync for UI
+          previousSeedsRef.current = data; // Store in ref for reliable comparison
+          hasInitialLoadedRef.current = true;
+          setIsInitialLoad(false);
+          console.log("Initial load - data saved as baseline");
+        } else {
+          // Compare new data with previous data using ref
+          const hasChanged = !areSeedsEqual(data, previousSeedsRef.current);
+          console.log(
+            "Comparing with previous data:",
+            hasChanged ? "Changed" : "Same",
+            { previousSeeds: previousSeedsRef.current, newSeeds: data }
+          );
+
+          if (hasChanged) {
+            // Data has changed, update everything
+            const sortedSeeds = sortSeedsByDefinedOrder(data);
+            setSeeds(sortedSeeds);
+            setPreviousSeeds(data); // Keep state in sync for UI
+            previousSeedsRef.current = data; // Update ref with new data
+            setIsUpdating(false);
+            clearUpdateInterval();
+            console.log(
+              "Data changed - updated seeds and cleared retry interval"
+            );
+          } else {
+            // Data is the same as previous
+            if (!isRetry) {
+              // This is a 5-minute fetch with same data, start retrying every 15 seconds
+              console.log(
+                "5-min fetch: same as previous - starting retry interval"
+              );
+              startUpdateInterval();
+            } else {
+              // This is a 15-second retry with same data, keep retrying
+              console.log(
+                "15s retry: still same as previous - continuing to retry"
+              );
+              // Keep the updating indicator and interval running
+            }
+          }
+        }
+      } else {
+        console.error("Failed to fetch seeds:", response.status);
+        if (hasInitialLoadedRef.current) {
+          // On error during update, try again in 15 seconds
+          startUpdateInterval();
+        }
       }
     } catch (error) {
       console.error("Error fetching seeds:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Function to load seeds from localStorage
-  const loadSeedsFromStorage = (): void => {
-    const storedSeeds = localStorage.getItem("SEEDS_STOCK");
-    if (storedSeeds) {
-      try {
-        const parsedSeeds: Seed[] = JSON.parse(storedSeeds);
-        const sortedSeeds = sortSeedsByDefinedOrder(parsedSeeds);
-        setSeeds(sortedSeeds);
-      } catch (error) {
-        console.error("Error parsing stored seeds:", error);
+      if (hasInitialLoadedRef.current) {
+        // On error during update, try again in 15 seconds
+        startUpdateInterval();
       }
-    }
-    setLoading(false);
-  };
-
-  // Function to initialize seeds data
-  const initializeSeedsData = (): void => {
-    // Check if we should fetch data for the current 5-minute interval
-    if (shouldFetchForCurrentInterval()) {
-      // Make a new API request for the current interval
-      fetchSeeds();
-    } else {
-      // Use existing data from localStorage
-      loadSeedsFromStorage();
+    } finally {
+      if (loading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -170,7 +248,7 @@ const SeedsStock: React.FC = () => {
   // Initialize component
   useEffect(() => {
     // Initialize seeds data (either from cache or API)
-    initializeSeedsData();
+    fetchSeeds();
 
     // Set up interval to check every second
     const interval = setInterval(() => {
@@ -181,7 +259,8 @@ const SeedsStock: React.FC = () => {
       setTimeUntilUpdate(formatTimeRemaining(timeRemaining));
 
       // Fetch data if we should fetch for the current 5-minute interval
-      if (shouldFetchForCurrentInterval()) {
+      if (shouldFetchAtFiveMinuteMark()) {
+        console.log("5-minute mark detected - calling fetchSeeds()");
         fetchSeeds();
       }
     }, 1000);
@@ -191,7 +270,10 @@ const SeedsStock: React.FC = () => {
     const initialRemaining = initialNext - Date.now();
     setTimeUntilUpdate(formatTimeRemaining(initialRemaining));
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      clearUpdateInterval();
+    };
   }, []);
 
   if (loading) {
@@ -222,6 +304,15 @@ const SeedsStock: React.FC = () => {
           UPDATES IN: {timeUntilUpdate}
         </div>
       </div>
+
+      {isUpdating && (
+        <div className="mb-4 bg-yellow-900 border border-yellow-500 rounded-lg p-3">
+          <div className="flex items-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-500 mr-3"></div>
+            <span className="text-yellow-200">Updating... please wait.</span>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-3">
         {seeds.map((seed) => (
