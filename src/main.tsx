@@ -14,7 +14,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-white p-6">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto bg-red-500">
         {/* Title */}
         <h1 className="text-black font-bold text-2xl mb-4">
           Grow a Garden Stock Notifications
