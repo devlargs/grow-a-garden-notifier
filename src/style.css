@@ -1,3 +1,101 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Prismatic seed animation - rotating RGB background */
+@keyframes prismatic-rotate {
+  0% {
+    background: linear-gradient(
+      90deg,
+      #ef4444,
+      #f59e0b,
+      #10b981,
+      #3b82f6,
+      #8b5cf6,
+      #ef4444
+    );
+  }
+  16.67% {
+    background: linear-gradient(
+      90deg,
+      #f59e0b,
+      #10b981,
+      #3b82f6,
+      #8b5cf6,
+      #ef4444,
+      #f59e0b
+    );
+  }
+  33.33% {
+    background: linear-gradient(
+      90deg,
+      #10b981,
+      #3b82f6,
+      #8b5cf6,
+      #ef4444,
+      #f59e0b,
+      #10b981
+    );
+  }
+  50% {
+    background: linear-gradient(
+      90deg,
+      #3b82f6,
+      #8b5cf6,
+      #ef4444,
+      #f59e0b,
+      #10b981,
+      #3b82f6
+    );
+  }
+  66.67% {
+    background: linear-gradient(
+      90deg,
+      #8b5cf6,
+      #ef4444,
+      #f59e0b,
+      #10b981,
+      #3b82f6,
+      #8b5cf6
+    );
+  }
+  83.33% {
+    background: linear-gradient(
+      90deg,
+      #ef4444,
+      #f59e0b,
+      #10b981,
+      #3b82f6,
+      #8b5cf6,
+      #ef4444
+    );
+  }
+  100% {
+    background: linear-gradient(
+      90deg,
+      #ef4444,
+      #f59e0b,
+      #10b981,
+      #3b82f6,
+      #8b5cf6,
+      #ef4444
+    );
+  }
+}
+
+.prismatic-seed {
+  animation: prismatic-rotate 3s linear infinite;
+  background-size: 200% 100%;
+}
+
+.prismatic-seed::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  background: #374151; /* bg-gray-700 */
+  border-radius: 0.375rem; /* rounded */
+  z-index: -1;
+}

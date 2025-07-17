@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { SEEDS } from "../constants/seeds";
 
 interface Seed {
   quantity: number;
@@ -27,24 +28,47 @@ const SeedsStock: React.FC = () => {
     return nextUpdate.getTime();
   };
 
-  // Function to check if current time is at a 5-minute interval
-  const isAtFiveMinuteInterval = (): boolean => {
+  // Function to get the current 5-minute interval timestamp
+  const getCurrentFiveMinuteInterval = (): number => {
     const now = new Date();
-    return now.getMinutes() % 5 === 0 && now.getSeconds() === 0;
+    const minutes = now.getMinutes();
+    const currentInterval = Math.floor(minutes / 5) * 5;
+
+    const currentUpdate = new Date(now);
+    currentUpdate.setMinutes(currentInterval, 0, 0); // Set seconds and milliseconds to 0
+
+    return currentUpdate.getTime();
   };
 
-  // Function to check if the last request was within the past 5 minutes
-  const isLastRequestWithinFiveMinutes = (): boolean => {
-    const lastRequestTime = localStorage.getItem("SEEDS_STOCK_LAST_REQUEST");
-    if (!lastRequestTime) {
-      return false;
+  // Function to check if we should fetch data for the current 5-minute interval
+  const shouldFetchForCurrentInterval = (): boolean => {
+    const currentInterval = getCurrentFiveMinuteInterval();
+    const lastFetchedInterval = localStorage.getItem(
+      "SEEDS_STOCK_LAST_INTERVAL"
+    );
+
+    if (!lastFetchedInterval) {
+      return true;
     }
 
-    const lastRequestTimestamp = parseInt(lastRequestTime);
-    const now = Date.now();
-    const fiveMinutesInMs = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const lastFetchedTimestamp = parseInt(lastFetchedInterval);
+    return currentInterval > lastFetchedTimestamp;
+  };
 
-    return now - lastRequestTimestamp < fiveMinutesInMs;
+  // Function to sort seeds based on the order defined in constants/seeds.ts
+  const sortSeedsByDefinedOrder = (seedsArray: Seed[]): Seed[] => {
+    // Create a map of seed names to their index in the SEEDS constant
+    const seedOrderMap = new Map<string, number>();
+    SEEDS.forEach((seed, index) => {
+      seedOrderMap.set(seed.name, index);
+    });
+
+    // Sort the seeds array based on the order defined in SEEDS
+    return seedsArray.sort((a, b) => {
+      const orderA = seedOrderMap.get(a.name) ?? Number.MAX_SAFE_INTEGER;
+      const orderB = seedOrderMap.get(b.name) ?? Number.MAX_SAFE_INTEGER;
+      return orderA - orderB;
+    });
   };
 
   // Function to fetch seeds from API
@@ -54,9 +78,14 @@ const SeedsStock: React.FC = () => {
       if (response.ok) {
         const data: Seed[] = await response.json();
         console.log(data);
-        setSeeds(data);
-        localStorage.setItem("SEEDS_STOCK", JSON.stringify(data));
+        const sortedSeeds = sortSeedsByDefinedOrder(data);
+        setSeeds(sortedSeeds);
+        localStorage.setItem("SEEDS_STOCK", JSON.stringify(sortedSeeds));
         localStorage.setItem("SEEDS_STOCK_LAST_REQUEST", Date.now().toString());
+        localStorage.setItem(
+          "SEEDS_STOCK_LAST_INTERVAL",
+          getCurrentFiveMinuteInterval().toString()
+        );
       }
     } catch (error) {
       console.error("Error fetching seeds:", error);
@@ -71,7 +100,8 @@ const SeedsStock: React.FC = () => {
     if (storedSeeds) {
       try {
         const parsedSeeds: Seed[] = JSON.parse(storedSeeds);
-        setSeeds(parsedSeeds);
+        const sortedSeeds = sortSeedsByDefinedOrder(parsedSeeds);
+        setSeeds(sortedSeeds);
       } catch (error) {
         console.error("Error parsing stored seeds:", error);
       }
@@ -81,13 +111,13 @@ const SeedsStock: React.FC = () => {
 
   // Function to initialize seeds data
   const initializeSeedsData = (): void => {
-    // Check if we have a recent request within 5 minutes
-    if (isLastRequestWithinFiveMinutes()) {
+    // Check if we should fetch data for the current 5-minute interval
+    if (shouldFetchForCurrentInterval()) {
+      // Make a new API request for the current interval
+      fetchSeeds();
+    } else {
       // Use existing data from localStorage
       loadSeedsFromStorage();
-    } else {
-      // Make a new API request
-      fetchSeeds();
     }
   };
 
@@ -107,6 +137,36 @@ const SeedsStock: React.FC = () => {
     return `/images/${imageName}.png`;
   };
 
+  // Function to get variant for a seed
+  const getSeedVariant = (seedName: string): string => {
+    const seed = SEEDS.find((s) => s.name === seedName);
+    return seed ? seed.variant : "Common";
+  };
+
+  // Function to get border classes based on variant
+  const getSeedBorderClasses = (seedName: string): string => {
+    const variant = getSeedVariant(seedName);
+
+    switch (variant) {
+      case "Common":
+        return "";
+      case "Uncommon":
+        return "border-2 border-green-500";
+      case "Rare":
+        return "border-2 border-blue-500";
+      case "Legendary":
+        return "border-2 border-yellow-500";
+      case "Mythical":
+        return "border-2 border-purple-500";
+      case "Divine":
+        return "border-2 border-orange-500";
+      case "Prismatic":
+        return "border-2 border-transparent relative prismatic-seed";
+      default:
+        return "";
+    }
+  };
+
   // Initialize component
   useEffect(() => {
     // Initialize seeds data (either from cache or API)
@@ -120,8 +180,8 @@ const SeedsStock: React.FC = () => {
 
       setTimeUntilUpdate(formatTimeRemaining(timeRemaining));
 
-      // Fetch data if we're at a 5-minute interval and last request was more than 5 minutes ago
-      if (isAtFiveMinuteInterval() && !isLastRequestWithinFiveMinutes()) {
+      // Fetch data if we should fetch for the current 5-minute interval
+      if (shouldFetchForCurrentInterval()) {
         fetchSeeds();
       }
     }, 1000);
@@ -164,12 +224,12 @@ const SeedsStock: React.FC = () => {
       </div>
 
       <div className="space-y-3">
-        {seeds.map((seed, index) => (
+        {seeds.map((seed) => (
           <div
-            key={index}
-            className={`bg-gray-700 rounded p-3 flex items-center justify-between ${
-              seed.quantity >= 4 ? "border-2 border-green-500" : ""
-            }`}
+            key={seed.name}
+            className={`bg-gray-700 rounded p-3 flex items-center justify-between ${getSeedBorderClasses(
+              seed.name
+            )}`}
           >
             <div className="flex items-center">
               <img
