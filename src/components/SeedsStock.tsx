@@ -8,26 +8,22 @@ interface Seed {
 
 const SeedsStock: React.FC = () => {
   const [seeds, setSeeds] = useState<Seed[]>([]);
-  const [previousSeeds, setPreviousSeeds] = useState<Seed[]>([]);
   const [timeUntilUpdate, setTimeUntilUpdate] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
   const updateIntervalRef = useRef<number | null>(null);
   const lastFetchTimeRef = useRef<number>(0);
   const hasInitialLoadedRef = useRef<boolean>(false);
   const previousSeedsRef = useRef<Seed[]>([]);
 
-  // Function to get the next 5-minute interval timestamp
   const getNextFiveMinuteInterval = (): number => {
     const now = new Date();
     const minutes = now.getMinutes();
     const nextInterval = Math.ceil(minutes / 5) * 5;
 
     const nextUpdate = new Date(now);
-    nextUpdate.setMinutes(nextInterval, 0, 0); // Set seconds and milliseconds to 0
+    nextUpdate.setMinutes(nextInterval, 0, 0);
 
-    // If we're already at a 5-minute mark, go to the next one
     if (nextUpdate.getTime() <= now.getTime()) {
       nextUpdate.setMinutes(nextUpdate.getMinutes() + 5);
     }
@@ -35,36 +31,28 @@ const SeedsStock: React.FC = () => {
     return nextUpdate.getTime();
   };
 
-  // Function to get the current 5-minute interval timestamp
   const getCurrentFiveMinuteInterval = (): number => {
     const now = new Date();
     const minutes = now.getMinutes();
     const currentInterval = Math.floor(minutes / 5) * 5;
 
     const currentUpdate = new Date(now);
-    currentUpdate.setMinutes(currentInterval, 0, 0); // Set seconds and milliseconds to 0
+    currentUpdate.setMinutes(currentInterval, 0, 0);
 
     return currentUpdate.getTime();
   };
 
-  // Function to check if we should fetch at a 5-minute interval
   const shouldFetchAtFiveMinuteMark = (): boolean => {
     const now = new Date();
     const minutes = now.getMinutes();
     const seconds = now.getSeconds();
 
-    // Check if we're at a 5-minute mark (0, 5, 10, 15, etc.) and within the first 5 seconds
     const isAtMark = minutes % 5 === 0 && seconds <= 5;
 
     if (isAtMark) {
-      // Get the current 5-minute interval timestamp
       const currentInterval = getCurrentFiveMinuteInterval();
 
-      // Only fetch if we haven't fetched for this interval yet
       if (currentInterval !== lastFetchTimeRef.current) {
-        console.log(
-          `5-minute mark detected: minutes=${minutes}, seconds=${seconds}`
-        );
         lastFetchTimeRef.current = currentInterval;
         return true;
       }
@@ -73,28 +61,21 @@ const SeedsStock: React.FC = () => {
     return false;
   };
 
-  // Function to compare if two seed arrays are the same
   const areSeedsEqual = (seeds1: Seed[], seeds2: Seed[]): boolean => {
     if (seeds1.length !== seeds2.length) return false;
 
-    // Sort both arrays by name for comparison
     const sorted1 = [...seeds1].sort((a, b) => a.name.localeCompare(b.name));
     const sorted2 = [...seeds2].sort((a, b) => a.name.localeCompare(b.name));
-
-    console.log(sorted1, sorted2);
 
     return JSON.stringify(sorted1) === JSON.stringify(sorted2);
   };
 
-  // Function to sort seeds based on the order defined in constants/seeds.ts
   const sortSeedsByDefinedOrder = (seedsArray: Seed[]): Seed[] => {
-    // Create a map of seed names to their index in the SEEDS constant
     const seedOrderMap = new Map<string, number>();
     SEEDS.forEach((seed, index) => {
       seedOrderMap.set(seed.name, index);
     });
 
-    // Sort the seeds array based on the order defined in SEEDS
     return seedsArray.sort((a, b) => {
       const orderA = seedOrderMap.get(a.name) ?? Number.MAX_SAFE_INTEGER;
       const orderB = seedOrderMap.get(b.name) ?? Number.MAX_SAFE_INTEGER;
@@ -102,7 +83,6 @@ const SeedsStock: React.FC = () => {
     });
   };
 
-  // Function to clear the update interval
   const clearUpdateInterval = (): void => {
     if (updateIntervalRef.current) {
       clearInterval(updateIntervalRef.current);
@@ -110,7 +90,6 @@ const SeedsStock: React.FC = () => {
     }
   };
 
-  // Function to start the 15-second update interval
   const startUpdateInterval = (): void => {
     clearUpdateInterval();
     updateIntervalRef.current = setInterval(() => {
@@ -118,11 +97,7 @@ const SeedsStock: React.FC = () => {
     }, 15000);
   };
 
-  // Function to fetch seeds from API
   const fetchSeeds = async (isRetry: boolean = false): Promise<void> => {
-    console.log(
-      `fetchSeeds called - isRetry: ${isRetry}, hasInitialLoaded: ${hasInitialLoadedRef.current}`
-    );
     try {
       if (!isRetry && hasInitialLoadedRef.current) {
         setIsUpdating(true);
@@ -131,65 +106,34 @@ const SeedsStock: React.FC = () => {
       const response = await fetch("https://gagapi.onrender.com/seeds");
       if (response.ok) {
         const data: Seed[] = await response.json();
-        console.log("Fetched data:", data);
 
         if (!hasInitialLoadedRef.current) {
-          // Initial load - save data as baseline for future comparisons
           const sortedSeeds = sortSeedsByDefinedOrder(data);
           setSeeds(sortedSeeds);
-          setPreviousSeeds(data); // Keep state in sync for UI
-          previousSeedsRef.current = data; // Store in ref for reliable comparison
+          previousSeedsRef.current = data;
           hasInitialLoadedRef.current = true;
-          setIsInitialLoad(false);
-          console.log("Initial load - data saved as baseline");
         } else {
-          // Compare new data with previous data using ref
           const hasChanged = !areSeedsEqual(data, previousSeedsRef.current);
-          console.log(
-            "Comparing with previous data:",
-            hasChanged ? "Changed" : "Same",
-            { previousSeeds: previousSeedsRef.current, newSeeds: data }
-          );
 
           if (hasChanged) {
-            // Data has changed, update everything
             const sortedSeeds = sortSeedsByDefinedOrder(data);
             setSeeds(sortedSeeds);
-            setPreviousSeeds(data); // Keep state in sync for UI
-            previousSeedsRef.current = data; // Update ref with new data
+            previousSeedsRef.current = data;
             setIsUpdating(false);
             clearUpdateInterval();
-            console.log(
-              "Data changed - updated seeds and cleared retry interval"
-            );
           } else {
-            // Data is the same as previous
             if (!isRetry) {
-              // This is a 5-minute fetch with same data, start retrying every 15 seconds
-              console.log(
-                "5-min fetch: same as previous - starting retry interval"
-              );
               startUpdateInterval();
-            } else {
-              // This is a 15-second retry with same data, keep retrying
-              console.log(
-                "15s retry: still same as previous - continuing to retry"
-              );
-              // Keep the updating indicator and interval running
             }
           }
         }
       } else {
-        console.error("Failed to fetch seeds:", response.status);
         if (hasInitialLoadedRef.current) {
-          // On error during update, try again in 15 seconds
           startUpdateInterval();
         }
       }
     } catch (error) {
-      console.error("Error fetching seeds:", error);
       if (hasInitialLoadedRef.current) {
-        // On error during update, try again in 15 seconds
         startUpdateInterval();
       }
     } finally {
@@ -199,7 +143,6 @@ const SeedsStock: React.FC = () => {
     }
   };
 
-  // Function to format time remaining
   const formatTimeRemaining = (milliseconds: number): string => {
     const totalSeconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -209,19 +152,16 @@ const SeedsStock: React.FC = () => {
       .padStart(2, "0")}s`;
   };
 
-  // Function to get image path for seed
   const getSeedImage = (seedName: string): string => {
     const imageName = seedName.toLowerCase().replace(/\s+/g, "-");
     return `/images/${imageName}.png`;
   };
 
-  // Function to get variant for a seed
   const getSeedVariant = (seedName: string): string => {
     const seed = SEEDS.find((s) => s.name === seedName);
     return seed ? seed.variant : "Common";
   };
 
-  // Function to get border classes based on variant
   const getSeedBorderClasses = (seedName: string): string => {
     const variant = getSeedVariant(seedName);
 
@@ -245,12 +185,9 @@ const SeedsStock: React.FC = () => {
     }
   };
 
-  // Initialize component
   useEffect(() => {
-    // Initialize seeds data (either from cache or API)
     fetchSeeds();
 
-    // Set up interval to check every second
     const interval = setInterval(() => {
       const now = new Date();
       const nextUpdate = getNextFiveMinuteInterval();
@@ -258,14 +195,11 @@ const SeedsStock: React.FC = () => {
 
       setTimeUntilUpdate(formatTimeRemaining(timeRemaining));
 
-      // Fetch data if we should fetch for the current 5-minute interval
       if (shouldFetchAtFiveMinuteMark()) {
-        console.log("5-minute mark detected - calling fetchSeeds()");
         fetchSeeds();
       }
     }, 1000);
 
-    // Set initial countdown
     const initialNext = getNextFiveMinuteInterval();
     const initialRemaining = initialNext - Date.now();
     setTimeUntilUpdate(formatTimeRemaining(initialRemaining));
@@ -328,7 +262,6 @@ const SeedsStock: React.FC = () => {
                 alt={seed.name}
                 className="w-8 h-8 mr-3"
                 onError={(e) => {
-                  // Fallback to a default image if specific image doesn't exist
                   const target = e.target as HTMLImageElement;
                   target.src = "/images/default-seed.png";
                 }}

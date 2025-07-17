@@ -5,11 +5,9 @@ import { sendDesktopNotification } from "./utils/sendDesktopNotifications";
 
 function App() {
   const handleNotification = async () => {
-    console.log("Attempting to send notification...");
-    const result = await sendDesktopNotification("Garden Reminder", {
+    await sendDesktopNotification("Garden Reminder", {
       body: "Time to check your garden!",
     });
-    console.log("Notification result:", result);
   };
 
   return (
@@ -191,7 +189,6 @@ function App() {
             </div>
           </div>
 
-          {/* Seeds Stock Column - Now Dynamic */}
           <SeedsStock />
         </div>
       </div>
