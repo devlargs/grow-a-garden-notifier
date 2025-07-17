@@ -154,7 +154,7 @@ const SeedsStock: React.FC = () => {
 
   const getSeedImage = (seedName: string): string => {
     const imageName = seedName.toLowerCase().replace(/\s+/g, "-");
-    return `/images/${imageName}.png`;
+    return `/images/seeds/${imageName}.png`;
   };
 
   const getSeedVariant = (seedName: string): string => {
@@ -263,7 +263,7 @@ const SeedsStock: React.FC = () => {
                 className="w-8 h-8 mr-3"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = "/images/default-seed.png";
+                  target.src = "/images/seeds/default-seed.png";
                 }}
               />
               <span className="text-white">{seed.name}</span>

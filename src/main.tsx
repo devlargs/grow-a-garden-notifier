@@ -53,7 +53,7 @@ function App() {
               <div className="bg-gray-700 rounded p-3 flex items-center justify-between">
                 <div className="flex items-center">
                   <img
-                    src="/images/apple.png"
+                    src="/images/seeds/apple.png"
                     alt="Cleaning Spray"
                     className="w-8 h-8 mr-3"
                   />
@@ -66,7 +66,7 @@ function App() {
               <div className="bg-gray-700 rounded p-3 flex items-center justify-between">
                 <div className="flex items-center">
                   <img
-                    src="/images/carrot.png"
+                    src="/images/seeds/carrot.png"
                     alt="Trowel"
                     className="w-8 h-8 mr-3"
                   />
@@ -79,7 +79,7 @@ function App() {
               <div className="bg-gray-700 rounded p-3 flex items-center justify-between">
                 <div className="flex items-center">
                   <img
-                    src="/images/blueberry.png"
+                    src="/images/seeds/blueberry.png"
                     alt="Watering Can"
                     className="w-8 h-8 mr-3"
                   />
@@ -92,7 +92,7 @@ function App() {
               <div className="bg-gray-700 rounded p-3 flex items-center justify-between border-2 border-green-500">
                 <div className="flex items-center">
                   <img
-                    src="/images/corn.png"
+                    src="/images/seeds/corn.png"
                     alt="Recall Wrench"
                     className="w-8 h-8 mr-3"
                   />
@@ -105,7 +105,7 @@ function App() {
               <div className="bg-gray-700 rounded p-3 flex items-center justify-between border-2 border-purple-500">
                 <div className="flex items-center">
                   <img
-                    src="/images/strawberry.png"
+                    src="/images/seeds/strawberry.png"
                     alt="Favorite Tool"
                     className="w-8 h-8 mr-3"
                   />
@@ -118,7 +118,7 @@ function App() {
               <div className="bg-gray-700 rounded p-3 flex items-center justify-between border-2 border-green-500">
                 <div className="flex items-center">
                   <img
-                    src="/images/tomato.png"
+                    src="/images/seeds/tomato.png"
                     alt="Harvest Tool"
                     className="w-8 h-8 mr-3"
                   />
@@ -152,7 +152,7 @@ function App() {
               <div className="bg-gray-700 rounded p-3 flex items-center justify-between">
                 <div className="flex items-center">
                   <img
-                    src="/images/mango.png"
+                    src="/images/seeds/mango.png"
                     alt="Common Egg"
                     className="w-8 h-8 mr-3"
                   />
@@ -165,7 +165,7 @@ function App() {
               <div className="bg-gray-700 rounded p-3 flex items-center justify-between">
                 <div className="flex items-center">
                   <img
-                    src="/images/mango.png"
+                    src="/images/seeds/mango.png"
                     alt="Common Egg"
                     className="w-8 h-8 mr-3"
                   />
@@ -178,7 +178,7 @@ function App() {
               <div className="bg-gray-700 rounded p-3 flex items-center justify-between">
                 <div className="flex items-center">
                   <img
-                    src="/images/mango.png"
+                    src="/images/seeds/mango.png"
                     alt="Common Egg"
                     className="w-8 h-8 mr-3"
                   />

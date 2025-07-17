@@ -1,15 +1,8 @@
-type SeedVariant =
-  | "Common"
-  | "Uncommon"
-  | "Rare"
-  | "Legendary"
-  | "Mythical"
-  | "Divine"
-  | "Prismatic";
+import type { Variants } from "../types/variants";
 
 export const SEEDS: Array<{
   name: string;
-  variant: SeedVariant;
+  variant: Variants;
 }> = [
   {
     name: "Carrot",
