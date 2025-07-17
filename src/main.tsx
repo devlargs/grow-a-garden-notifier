@@ -14,7 +14,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-900 p-6">
-      <div className="mx-auto">
+      <div className="mx-auto max-w-7xl">
         <h1 className="text-white font-bold text-3xl mb-8 text-center mt-10">
           Grow a Garden Stock Notifications
         </h1>
@@ -29,9 +29,9 @@ function App() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <SeedsStock />
           <GearStock />
           <EggStock />
-          <SeedsStock />
         </div>
       </div>
     </div>
