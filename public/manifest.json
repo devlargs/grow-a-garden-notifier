@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Grow a garden stock notifications",
+  "version": "0.0.1",
+  "description": "Stock notifications for Grow a Garden (Roblox)",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "permissions": ["notifications"],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
