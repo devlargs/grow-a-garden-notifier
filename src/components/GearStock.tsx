@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { SEEDS } from "../constants/seeds";
+import { GEARS } from "../constants/gears";
 import type { StockItem } from "../utils/stockUtils";
 import {
   areItemsEqual,
@@ -14,70 +14,54 @@ import {
   startUpdateInterval,
 } from "../utils/stockUtils";
 
-const SeedsStock: React.FC = () => {
-  const [seeds, setSeeds] = useState<StockItem[]>([]);
+const GearStock: React.FC = () => {
+  const [gears, setGears] = useState<StockItem[]>([]);
   const [timeUntilUpdate, setTimeUntilUpdate] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const updateIntervalRef = useRef<number | null>(null);
   const lastFetchTimeRef = useRef<number>(0);
   const hasInitialLoadedRef = useRef<boolean>(false);
-  const previousSeedsRef = useRef<StockItem[]>([]);
+  const previousGearsRef = useRef<StockItem[]>([]);
 
-  const areSeedsEqual = (seeds1: StockItem[], seeds2: StockItem[]): boolean => {
-    return areItemsEqual(seeds1, seeds2);
-  };
-
-  const sortSeedsByDefinedOrder = (seedsArray: StockItem[]): StockItem[] => {
-    return sortItemsByDefinedOrder(seedsArray, SEEDS);
-  };
-
-  const clearUpdateIntervalLocal = (): void => {
-    clearUpdateInterval(updateIntervalRef);
-  };
-
-  const startUpdateIntervalLocal = (): void => {
-    startUpdateInterval(updateIntervalRef, fetchSeeds);
-  };
-
-  const fetchSeeds = async (isRetry: boolean = false): Promise<void> => {
+  const fetchGears = async (isRetry: boolean = false): Promise<void> => {
     try {
       if (!isRetry && hasInitialLoadedRef.current) {
         setIsUpdating(true);
       }
 
-      const response = await fetch("https://gagapi.onrender.com/seeds");
+      const response = await fetch("https://gagapi.onrender.com/gear");
       if (response.ok) {
         const data: StockItem[] = await response.json();
 
         if (!hasInitialLoadedRef.current) {
-          const sortedSeeds = sortSeedsByDefinedOrder(data);
-          setSeeds(sortedSeeds);
-          previousSeedsRef.current = data;
+          const sortedGears = sortItemsByDefinedOrder(data, GEARS);
+          setGears(sortedGears);
+          previousGearsRef.current = data;
           hasInitialLoadedRef.current = true;
         } else {
-          const hasChanged = !areSeedsEqual(data, previousSeedsRef.current);
+          const hasChanged = !areItemsEqual(data, previousGearsRef.current);
 
           if (hasChanged) {
-            const sortedSeeds = sortSeedsByDefinedOrder(data);
-            setSeeds(sortedSeeds);
-            previousSeedsRef.current = data;
+            const sortedGears = sortItemsByDefinedOrder(data, GEARS);
+            setGears(sortedGears);
+            previousGearsRef.current = data;
             setIsUpdating(false);
-            clearUpdateIntervalLocal();
+            clearUpdateInterval(updateIntervalRef);
           } else {
             if (!isRetry) {
-              startUpdateIntervalLocal();
+              startUpdateInterval(updateIntervalRef, fetchGears);
             }
           }
         }
       } else {
         if (hasInitialLoadedRef.current) {
-          startUpdateIntervalLocal();
+          startUpdateInterval(updateIntervalRef, fetchGears);
         }
       }
     } catch (error) {
       if (hasInitialLoadedRef.current) {
-        startUpdateIntervalLocal();
+        startUpdateInterval(updateIntervalRef, fetchGears);
       }
     } finally {
       if (loading) {
@@ -86,21 +70,21 @@ const SeedsStock: React.FC = () => {
     }
   };
 
-  const getSeedImage = (seedName: string): string => {
-    return getItemImage(seedName, "/images/seeds", "png");
+  const getGearImage = (gearName: string): string => {
+    return getItemImage(gearName, "/images/gears", "webp");
   };
 
-  const getSeedVariant = (seedName: string): string => {
-    return getItemVariant(seedName, SEEDS);
+  const getGearVariant = (gearName: string): string => {
+    return getItemVariant(gearName, GEARS);
   };
 
-  const getSeedBorderClasses = (seedName: string): string => {
-    const variant = getSeedVariant(seedName);
+  const getGearBorderClasses = (gearName: string): string => {
+    const variant = getGearVariant(gearName);
     return getItemBorderClasses(variant);
   };
 
   useEffect(() => {
-    fetchSeeds();
+    fetchGears();
 
     const interval = setInterval(() => {
       const now = new Date();
@@ -110,7 +94,7 @@ const SeedsStock: React.FC = () => {
       setTimeUntilUpdate(formatTimeRemaining(timeRemaining));
 
       if (shouldFetchAtFiveMinuteMark(lastFetchTimeRef)) {
-        fetchSeeds();
+        fetchGears();
       }
     }, 1000);
 
@@ -120,7 +104,7 @@ const SeedsStock: React.FC = () => {
 
     return () => {
       clearInterval(interval);
-      clearUpdateIntervalLocal();
+      clearUpdateInterval(updateIntervalRef);
     };
   }, []);
 
@@ -128,7 +112,7 @@ const SeedsStock: React.FC = () => {
     return (
       <div className="bg-gray-800 rounded-lg p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-white font-bold text-xl">SEEDS STOCK</h2>
+          <h2 className="text-white font-bold text-xl">GEARS STOCK</h2>
           <div className="text-gray-300 text-sm">Loading...</div>
         </div>
       </div>
@@ -138,7 +122,7 @@ const SeedsStock: React.FC = () => {
   return (
     <div className="bg-gray-800 rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-white font-bold text-xl">SEEDS STOCK</h2>
+        <h2 className="text-white font-bold text-xl">GEARS STOCK</h2>
         <div className="flex items-center text-gray-300 text-sm">
           <svg
             className="w-4 h-4 mr-2"
@@ -163,26 +147,26 @@ const SeedsStock: React.FC = () => {
       )}
 
       <div className="space-y-3">
-        {seeds.map((seed) => (
+        {gears.map((gear) => (
           <div
-            key={seed.name}
-            className={`bg-gray-700 rounded p-3 flex items-center justify-between ${getSeedBorderClasses(
-              seed.name
+            key={gear.name}
+            className={`bg-gray-700 rounded p-3 flex items-center justify-between ${getGearBorderClasses(
+              gear.name
             )}`}
           >
             <div className="flex items-center">
               <img
-                src={getSeedImage(seed.name)}
-                alt={seed.name}
+                src={getGearImage(gear.name)}
+                alt={gear.name}
                 className="w-8 h-8 mr-3"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = "/images/seeds/default-seed.png";
+                  target.src = "/images/gears/watering-can.webp";
                 }}
               />
-              <span className="text-white">{seed.name}</span>
+              <span className="text-white">{gear.name}</span>
             </div>
-            <span className="text-gray-300">x{seed.quantity}</span>
+            <span className="text-gray-300">x{gear.quantity}</span>
           </div>
         ))}
       </div>
@@ -190,4 +174,4 @@ const SeedsStock: React.FC = () => {
   );
 };
 
-export default SeedsStock;
+export default GearStock;

@@ -1,4 +1,5 @@
 import ReactDOM from "react-dom/client";
+import GearStock from "./components/GearStock";
 import SeedsStock from "./components/SeedsStock";
 import "./style.css";
 import { sendDesktopNotification } from "./utils/sendDesktopNotifications";
@@ -30,104 +31,7 @@ function App() {
 
         {/* Three Column Layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Gear Stock Column */}
-          <div className="bg-gray-800 rounded-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-white font-bold text-xl">GEAR STOCK</h2>
-              <div className="flex items-center text-gray-300 text-sm">
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                  <polyline points="12,6 12,12 16,14" strokeWidth="2" />
-                </svg>
-                UPDATES IN: 02m 21s
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {/* Cleaning Spray */}
-              <div className="bg-gray-700 rounded p-3 flex items-center justify-between">
-                <div className="flex items-center">
-                  <img
-                    src="/images/seeds/apple.png"
-                    alt="Cleaning Spray"
-                    className="w-8 h-8 mr-3"
-                  />
-                  <span className="text-white">Cleaning Spray</span>
-                </div>
-                <span className="text-gray-300">x2</span>
-              </div>
-
-              {/* Trowel */}
-              <div className="bg-gray-700 rounded p-3 flex items-center justify-between">
-                <div className="flex items-center">
-                  <img
-                    src="/images/seeds/carrot.png"
-                    alt="Trowel"
-                    className="w-8 h-8 mr-3"
-                  />
-                  <span className="text-white">Trowel</span>
-                </div>
-                <span className="text-gray-300">x2</span>
-              </div>
-
-              {/* Watering Can */}
-              <div className="bg-gray-700 rounded p-3 flex items-center justify-between">
-                <div className="flex items-center">
-                  <img
-                    src="/images/seeds/blueberry.png"
-                    alt="Watering Can"
-                    className="w-8 h-8 mr-3"
-                  />
-                  <span className="text-white">Watering Can</span>
-                </div>
-                <span className="text-gray-300">x2</span>
-              </div>
-
-              {/* Recall Wrench */}
-              <div className="bg-gray-700 rounded p-3 flex items-center justify-between border-2 border-green-500">
-                <div className="flex items-center">
-                  <img
-                    src="/images/seeds/corn.png"
-                    alt="Recall Wrench"
-                    className="w-8 h-8 mr-3"
-                  />
-                  <span className="text-white">Recall Wrench</span>
-                </div>
-                <span className="text-gray-300">x1</span>
-              </div>
-
-              {/* Favorite Tool */}
-              <div className="bg-gray-700 rounded p-3 flex items-center justify-between border-2 border-purple-500">
-                <div className="flex items-center">
-                  <img
-                    src="/images/seeds/strawberry.png"
-                    alt="Favorite Tool"
-                    className="w-8 h-8 mr-3"
-                  />
-                  <span className="text-white">Favorite Tool</span>
-                </div>
-                <span className="text-gray-300">x1</span>
-              </div>
-
-              {/* Harvest Tool */}
-              <div className="bg-gray-700 rounded p-3 flex items-center justify-between border-2 border-green-500">
-                <div className="flex items-center">
-                  <img
-                    src="/images/seeds/tomato.png"
-                    alt="Harvest Tool"
-                    className="w-8 h-8 mr-3"
-                  />
-                  <span className="text-white">Harvest Tool</span>
-                </div>
-                <span className="text-gray-300">x1</span>
-              </div>
-            </div>
-          </div>
+          <GearStock />
 
           {/* Egg Stock Column */}
           <div className="bg-gray-800 rounded-lg p-6">
