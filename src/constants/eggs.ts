@@ -13,6 +13,10 @@ export const EGGS: Array<{
     variant: "Common",
   },
   {
+    name: "Uncommon Egg",
+    variant: "Uncommon",
+  },
+  {
     name: "Rare Summer Egg",
     variant: "Rare",
   },

@@ -1,5 +1,5 @@
 import React from "react";
-import { SEEDS } from "../constants/seeds";
+import { EGGS } from "../constants/eggs";
 import {
   getItemBorderClasses,
   getItemImage,
@@ -7,28 +7,28 @@ import {
   useStockManager,
 } from "../utils/stockUtils";
 
-const SeedsStock: React.FC = () => {
+const EggStock: React.FC = () => {
   const {
-    items: seeds,
+    items: eggs,
     timeUntilUpdate,
     loading,
     isUpdating,
   } = useStockManager(
-    "https://gagapi.onrender.com/seeds",
-    SEEDS,
-    false // Use 5-minute intervals for seeds
+    "https://gagapi.onrender.com/eggs",
+    EGGS,
+    true // Use 30-minute intervals for eggs
   );
 
-  const getSeedImage = (seedName: string): string => {
-    return getItemImage(seedName, "/images/seeds", "png");
+  const getEggImage = (eggName: string): string => {
+    return getItemImage(eggName, "/images/eggs", "webp");
   };
 
-  const getSeedVariant = (seedName: string): string => {
-    return getItemVariant(seedName, SEEDS);
+  const getEggVariant = (eggName: string): string => {
+    return getItemVariant(eggName, EGGS);
   };
 
-  const getSeedBorderClasses = (seedName: string): string => {
-    const variant = getSeedVariant(seedName);
+  const getEggBorderClasses = (eggName: string): string => {
+    const variant = getEggVariant(eggName);
     return getItemBorderClasses(variant);
   };
 
@@ -36,7 +36,7 @@ const SeedsStock: React.FC = () => {
     return (
       <div className="bg-gray-800 rounded-lg p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-white font-bold text-xl">SEEDS STOCK</h2>
+          <h2 className="text-white font-bold text-xl">EGGS STOCK</h2>
           <div className="text-gray-300 text-sm">Loading...</div>
         </div>
       </div>
@@ -46,7 +46,7 @@ const SeedsStock: React.FC = () => {
   return (
     <div className="bg-gray-800 rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-white font-bold text-xl">SEEDS STOCK</h2>
+        <h2 className="text-white font-bold text-xl">EGGS STOCK</h2>
         <div className="flex items-center text-gray-300 text-sm">
           <svg
             className="w-4 h-4 mr-2"
@@ -71,26 +71,26 @@ const SeedsStock: React.FC = () => {
       )}
 
       <div className="space-y-3">
-        {seeds.map((seed) => (
+        {eggs.map((egg) => (
           <div
-            key={seed.name}
-            className={`bg-gray-700 rounded p-3 flex items-center justify-between ${getSeedBorderClasses(
-              seed.name
+            key={egg.name}
+            className={`bg-gray-700 rounded p-3 flex items-center justify-between ${getEggBorderClasses(
+              egg.name
             )}`}
           >
             <div className="flex items-center">
               <img
-                src={getSeedImage(seed.name)}
-                alt={seed.name}
+                src={getEggImage(egg.name)}
+                alt={egg.name}
                 className="w-8 h-8 mr-3"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = "/images/seeds/default-seed.png";
+                  target.src = "/images/eggs/common-egg.webp";
                 }}
               />
-              <span className="text-white">{seed.name}</span>
+              <span className="text-white">{egg.name}</span>
             </div>
-            <span className="text-gray-300">x{seed.quantity}</span>
+            <span className="text-gray-300">x{egg.quantity}</span>
           </div>
         ))}
       </div>
@@ -98,4 +98,4 @@ const SeedsStock: React.FC = () => {
   );
 };
 
-export default SeedsStock;
+export default EggStock;

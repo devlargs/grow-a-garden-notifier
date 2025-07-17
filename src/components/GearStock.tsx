@@ -1,74 +1,23 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { GEARS } from "../constants/gears";
-import type { StockItem } from "../utils/stockUtils";
 import {
-  areItemsEqual,
-  clearUpdateInterval,
-  formatTimeRemaining,
   getItemBorderClasses,
   getItemImage,
   getItemVariant,
-  getNextFiveMinuteInterval,
-  shouldFetchAtFiveMinuteMark,
-  sortItemsByDefinedOrder,
-  startUpdateInterval,
+  useStockManager,
 } from "../utils/stockUtils";
 
 const GearStock: React.FC = () => {
-  const [gears, setGears] = useState<StockItem[]>([]);
-  const [timeUntilUpdate, setTimeUntilUpdate] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  const updateIntervalRef = useRef<number | null>(null);
-  const lastFetchTimeRef = useRef<number>(0);
-  const hasInitialLoadedRef = useRef<boolean>(false);
-  const previousGearsRef = useRef<StockItem[]>([]);
-
-  const fetchGears = async (isRetry: boolean = false): Promise<void> => {
-    try {
-      if (!isRetry && hasInitialLoadedRef.current) {
-        setIsUpdating(true);
-      }
-
-      const response = await fetch("https://gagapi.onrender.com/gear");
-      if (response.ok) {
-        const data: StockItem[] = await response.json();
-
-        if (!hasInitialLoadedRef.current) {
-          const sortedGears = sortItemsByDefinedOrder(data, GEARS);
-          setGears(sortedGears);
-          previousGearsRef.current = data;
-          hasInitialLoadedRef.current = true;
-        } else {
-          const hasChanged = !areItemsEqual(data, previousGearsRef.current);
-
-          if (hasChanged) {
-            const sortedGears = sortItemsByDefinedOrder(data, GEARS);
-            setGears(sortedGears);
-            previousGearsRef.current = data;
-            setIsUpdating(false);
-            clearUpdateInterval(updateIntervalRef);
-          } else {
-            if (!isRetry) {
-              startUpdateInterval(updateIntervalRef, fetchGears);
-            }
-          }
-        }
-      } else {
-        if (hasInitialLoadedRef.current) {
-          startUpdateInterval(updateIntervalRef, fetchGears);
-        }
-      }
-    } catch (error) {
-      if (hasInitialLoadedRef.current) {
-        startUpdateInterval(updateIntervalRef, fetchGears);
-      }
-    } finally {
-      if (loading) {
-        setLoading(false);
-      }
-    }
-  };
+  const {
+    items: gears,
+    timeUntilUpdate,
+    loading,
+    isUpdating,
+  } = useStockManager(
+    "https://gagapi.onrender.com/gear",
+    GEARS,
+    false // Use 5-minute intervals for gears
+  );
 
   const getGearImage = (gearName: string): string => {
     return getItemImage(gearName, "/images/gears", "webp");
@@ -82,31 +31,6 @@ const GearStock: React.FC = () => {
     const variant = getGearVariant(gearName);
     return getItemBorderClasses(variant);
   };
-
-  useEffect(() => {
-    fetchGears();
-
-    const interval = setInterval(() => {
-      const now = new Date();
-      const nextUpdate = getNextFiveMinuteInterval();
-      const timeRemaining = nextUpdate - now.getTime();
-
-      setTimeUntilUpdate(formatTimeRemaining(timeRemaining));
-
-      if (shouldFetchAtFiveMinuteMark(lastFetchTimeRef)) {
-        fetchGears();
-      }
-    }, 1000);
-
-    const initialNext = getNextFiveMinuteInterval();
-    const initialRemaining = initialNext - Date.now();
-    setTimeUntilUpdate(formatTimeRemaining(initialRemaining));
-
-    return () => {
-      clearInterval(interval);
-      clearUpdateInterval(updateIntervalRef);
-    };
-  }, []);
 
   if (loading) {
     return (
