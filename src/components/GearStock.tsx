@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { GEARS } from "../constants/gears";
+import {
+  checkForRestocks,
+  initializeStockTracking,
+} from "../utils/notificationChecker";
 import {
   getItemBorderClasses,
   getItemImage,
@@ -14,10 +18,29 @@ const GearStock: React.FC = () => {
     loading,
     isUpdating,
   } = useStockManager(
-    "https://gagapi.onrender.com/gear",
+    "https://gagapi.onrender.com/gears",
     GEARS,
     false // Use 5-minute intervals for gears
   );
+
+  const previousGearsRef = useRef<typeof gears>([]);
+  const isInitializedRef = useRef(false);
+
+  // Initialize stock tracking on first load
+  useEffect(() => {
+    if (!loading && gears.length > 0 && !isInitializedRef.current) {
+      initializeStockTracking("gears", gears);
+      isInitializedRef.current = true;
+    }
+  }, [loading, gears]);
+
+  // Check for restocks when items update
+  useEffect(() => {
+    if (!loading && gears.length > 0 && previousGearsRef.current.length > 0) {
+      checkForRestocks("gears", gears);
+    }
+    previousGearsRef.current = gears;
+  }, [gears, loading]);
 
   const getGearImage = (gearName: string): string => {
     return getItemImage(gearName, "/images/gears", "webp");

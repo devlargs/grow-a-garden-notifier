@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { SEEDS } from "../constants/seeds";
+import {
+  checkForRestocks,
+  initializeStockTracking,
+} from "../utils/notificationChecker";
 import {
   getItemBorderClasses,
   getItemImage,
@@ -18,6 +22,25 @@ const SeedsStock: React.FC = () => {
     SEEDS,
     false // Use 5-minute intervals for seeds
   );
+
+  const previousSeedsRef = useRef<typeof seeds>([]);
+  const isInitializedRef = useRef(false);
+
+  // Initialize stock tracking on first load
+  useEffect(() => {
+    if (!loading && seeds.length > 0 && !isInitializedRef.current) {
+      initializeStockTracking("seeds", seeds);
+      isInitializedRef.current = true;
+    }
+  }, [loading, seeds]);
+
+  // Check for restocks when items update
+  useEffect(() => {
+    if (!loading && seeds.length > 0 && previousSeedsRef.current.length > 0) {
+      checkForRestocks("seeds", seeds);
+    }
+    previousSeedsRef.current = seeds;
+  }, [seeds, loading]);
 
   const getSeedImage = (seedName: string): string => {
     return getItemImage(seedName, "/images/seeds", "png");

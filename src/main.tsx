@@ -1,14 +1,28 @@
+import { useState } from "react";
 import ReactDOM from "react-dom/client";
 import EggStock from "./components/EggStock";
 import GearStock from "./components/GearStock";
+import NotificationModal from "./components/NotificationModal";
 import SeedsStock from "./components/SeedsStock";
 import "./style.css";
 import { sendDesktopNotification } from "./utils/sendDesktopNotifications";
 
 function App() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handleNotification = async () => {
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleModalConfirm = async (selectedItems: string[]) => {
+    console.log("Selected items:", selectedItems);
+    // Here you can implement the notification logic for selected items
     await sendDesktopNotification("Garden Reminder", {
-      body: "Time to check your garden!",
+      body: `Notifications set for: ${selectedItems.join(", ")}`,
     });
   };
 
@@ -34,6 +48,12 @@ function App() {
           <EggStock />
         </div>
       </div>
+
+      <NotificationModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onConfirm={handleModalConfirm}
+      />
     </div>
   );
 }

@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { EGGS } from "../constants/eggs";
+import {
+  checkForRestocks,
+  initializeStockTracking,
+} from "../utils/notificationChecker";
 import {
   getItemBorderClasses,
   getItemImage,
@@ -18,6 +22,25 @@ const EggStock: React.FC = () => {
     EGGS,
     true // Use 30-minute intervals for eggs
   );
+
+  const previousEggsRef = useRef<typeof eggs>([]);
+  const isInitializedRef = useRef(false);
+
+  // Initialize stock tracking on first load
+  useEffect(() => {
+    if (!loading && eggs.length > 0 && !isInitializedRef.current) {
+      initializeStockTracking("eggs", eggs);
+      isInitializedRef.current = true;
+    }
+  }, [loading, eggs]);
+
+  // Check for restocks when items update
+  useEffect(() => {
+    if (!loading && eggs.length > 0 && previousEggsRef.current.length > 0) {
+      checkForRestocks("eggs", eggs);
+    }
+    previousEggsRef.current = eggs;
+  }, [eggs, loading]);
 
   const getEggImage = (eggName: string): string => {
     return getItemImage(eggName, "/images/eggs", "webp");
