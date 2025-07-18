@@ -37,7 +37,9 @@ const GearStock: React.FC = () => {
   // Check for restocks when items update
   useEffect(() => {
     if (!loading && gears.length > 0 && previousGearsRef.current.length > 0) {
-      checkForRestocks("gears", gears);
+      checkForRestocks("gears", gears).catch((error) => {
+        console.error("Error checking for restocks:", error);
+      });
     }
     previousGearsRef.current = gears;
   }, [gears, loading]);

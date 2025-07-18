@@ -37,7 +37,9 @@ const EggStock: React.FC = () => {
   // Check for restocks when items update
   useEffect(() => {
     if (!loading && eggs.length > 0 && previousEggsRef.current.length > 0) {
-      checkForRestocks("eggs", eggs);
+      checkForRestocks("eggs", eggs).catch((error) => {
+        console.error("Error checking for restocks:", error);
+      });
     }
     previousEggsRef.current = eggs;
   }, [eggs, loading]);

@@ -19,8 +19,6 @@ function App() {
   };
 
   const handleModalConfirm = async (selectedItems: string[]) => {
-    console.log("Selected items:", selectedItems);
-    // Here you can implement the notification logic for selected items
     await sendDesktopNotification("Garden Reminder", {
       body: `Notifications set for: ${selectedItems.join(", ")}`,
     });

@@ -88,10 +88,13 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
     const eggSelections: ItemSelection = {};
 
     Object.keys(savedSelections).forEach((itemName) => {
+      // For seeds, check if the base name (without "Seeds") is in the seed items
+      const baseSeedName = itemName.replace(" Seeds", "");
+
       if (gearItems.includes(itemName)) {
         gearSelections[itemName] = savedSelections[itemName];
-      } else if (seedItems.includes(itemName)) {
-        seedSelections[itemName] = savedSelections[itemName];
+      } else if (seedItems.includes(baseSeedName)) {
+        seedSelections[baseSeedName] = savedSelections[itemName];
       } else if (eggItems.includes(itemName)) {
         eggSelections[itemName] = savedSelections[itemName];
       }

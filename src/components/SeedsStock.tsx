@@ -37,7 +37,9 @@ const SeedsStock: React.FC = () => {
   // Check for restocks when items update
   useEffect(() => {
     if (!loading && seeds.length > 0 && previousSeedsRef.current.length > 0) {
-      checkForRestocks("seeds", seeds);
+      checkForRestocks("seeds", seeds).catch((error) => {
+        console.error("Error checking for restocks:", error);
+      });
     }
     previousSeedsRef.current = seeds;
   }, [seeds, loading]);
