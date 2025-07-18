@@ -18,7 +18,7 @@ const GearStock: React.FC = () => {
     loading,
     isUpdating,
   } = useStockManager(
-    "https://gagapi.onrender.com/gears",
+    "https://gagapi.onrender.com/gear",
     GEARS,
     false // Use 5-minute intervals for gears
   );

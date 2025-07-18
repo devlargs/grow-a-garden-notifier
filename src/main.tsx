@@ -38,7 +38,7 @@ function App() {
             onClick={handleNotification}
             className="bg-gray-700 border border-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
           >
-            Send Notification
+            Create Notification
           </button>
         </div>
 

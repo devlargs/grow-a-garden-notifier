@@ -172,6 +172,12 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
     onClose();
   };
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   const getSelectedCount = (category: "gear" | "seed" | "egg") => {
     const selections =
       category === "gear"
@@ -191,8 +197,11 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg p-6 max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-gray-800 rounded-lg p-6 max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
@@ -213,7 +222,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white text-2xl"
+            className="text-gray-400 hover:text-white text-2xl transition-colors"
           >
             ×
           </button>
@@ -257,7 +266,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
                 </span>
                 <button
                   onClick={() => handleSelectAll("gear")}
-                  className="text-blue-400 hover:text-blue-300 text-sm"
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
                 >
                   Select All
                 </button>
@@ -271,7 +280,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
                 return (
                   <div
                     key={gear.name}
-                    className="flex items-center justify-between p-2 rounded hover:bg-gray-600"
+                    className="flex items-center justify-between p-2 rounded hover:bg-gray-600 transition-colors"
                   >
                     <div className="flex items-center">
                       <input
@@ -313,7 +322,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
                 </span>
                 <button
                   onClick={() => handleSelectAll("seed")}
-                  className="text-blue-400 hover:text-blue-300 text-sm"
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
                 >
                   Select All
                 </button>
@@ -327,7 +336,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
                 return (
                   <div
                     key={seed.name}
-                    className="flex items-center justify-between p-2 rounded hover:bg-gray-600"
+                    className="flex items-center justify-between p-2 rounded hover:bg-gray-600 transition-colors"
                   >
                     <div className="flex items-center">
                       <input
@@ -358,7 +367,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
                   />
                 </svg>
                 <span className="text-white font-semibold">Eggs</span>
@@ -369,7 +378,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
                 </span>
                 <button
                   onClick={() => handleSelectAll("egg")}
-                  className="text-blue-400 hover:text-blue-300 text-sm"
+                  className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
                 >
                   Select All
                 </button>
@@ -383,7 +392,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
                 return (
                   <div
                     key={egg.name}
-                    className="flex items-center justify-between p-2 rounded hover:bg-gray-600"
+                    className="flex items-center justify-between p-2 rounded hover:bg-gray-600 transition-colors"
                   >
                     <div className="flex items-center">
                       <input
@@ -406,7 +415,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
           <div className="flex items-center space-x-4">
             <button
               onClick={handleClearAll}
-              className="text-gray-400 hover:text-white"
+              className="text-gray-400 hover:text-white transition-colors"
             >
               Clear All
             </button>
