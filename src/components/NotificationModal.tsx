@@ -265,6 +265,64 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
 
         {/* Content */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {/* Seeds Column */}
+          <div className="bg-gray-700 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center">
+                <svg
+                  className="w-4 h-4 text-gray-400 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+                <span className="text-white font-semibold text-sm">Seeds</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-300 text-xs">
+                  {getSelectedCount("seed")}/{SEEDS.length}
+                </span>
+                <button
+                  onClick={() => handleSelectAll("seed")}
+                  className="text-blue-400 hover:text-blue-300 text-xs transition-colors"
+                >
+                  Select All
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              {SEEDS.map((seed) => {
+                const variant = getItemVariant(seed.name, SEEDS);
+                const textColor = getItemTextColor(variant);
+                return (
+                  <div
+                    key={seed.name}
+                    className="flex items-center justify-between p-1 rounded hover:bg-gray-600 transition-colors"
+                  >
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={seedSelections[seed.name] || false}
+                        onChange={() => handleItemToggle(seed.name, "seed")}
+                        className="mr-2"
+                      />
+                      <span className={`${textColor} text-xs`}>
+                        {seed.name} Seeds
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Gear Column */}
           <div className="bg-gray-700 rounded-lg p-3">
             <div className="flex items-center justify-between mb-3">
@@ -321,64 +379,6 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
                       />
                       <span className={`${textColor} text-xs`}>
                         {gear.name}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Seeds Column */}
-          <div className="bg-gray-700 rounded-lg p-3">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center">
-                <svg
-                  className="w-4 h-4 text-gray-400 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
-                </svg>
-                <span className="text-white font-semibold text-sm">Seeds</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-300 text-xs">
-                  {getSelectedCount("seed")}/{SEEDS.length}
-                </span>
-                <button
-                  onClick={() => handleSelectAll("seed")}
-                  className="text-blue-400 hover:text-blue-300 text-xs transition-colors"
-                >
-                  Select All
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              {SEEDS.map((seed) => {
-                const variant = getItemVariant(seed.name, SEEDS);
-                const textColor = getItemTextColor(variant);
-                return (
-                  <div
-                    key={seed.name}
-                    className="flex items-center justify-between p-1 rounded hover:bg-gray-600 transition-colors"
-                  >
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={seedSelections[seed.name] || false}
-                        onChange={() => handleItemToggle(seed.name, "seed")}
-                        className="mr-2"
-                      />
-                      <span className={`${textColor} text-xs`}>
-                        {seed.name} Seeds
                       </span>
                     </div>
                   </div>
