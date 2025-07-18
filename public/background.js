@@ -51,15 +51,6 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
-// Fetch all stock data
-async function fetchAllStock() {
-  await Promise.all([
-    fetchStock("seeds"),
-    fetchStock("gears"),
-    fetchStock("eggs"),
-  ]);
-}
-
 // Fetch stock data for a specific category
 async function fetchStock(category) {
   try {
@@ -83,9 +74,33 @@ async function fetchStock(category) {
     });
 
     console.log(`${category} stock updated:`, currentStock);
+
+    // Send combined notification if there are restocked items
+    setTimeout(() => {
+      sendCombinedRestockNotification();
+    }, 1000); // Small delay to ensure all categories are processed
   } catch (error) {
     console.error(`Error fetching ${category} stock:`, error);
   }
+}
+
+// Fetch all stock data
+async function fetchAllStock() {
+  console.log("Fetching all stock data...");
+
+  // Clear the tracker before fetching
+  globalRestockTracker = { seeds: [], gears: [], eggs: [] };
+
+  await Promise.all([
+    fetchStock("seeds"),
+    fetchStock("gears"),
+    fetchStock("eggs"),
+  ]);
+
+  // Send combined notification after all categories are checked
+  setTimeout(() => {
+    sendCombinedRestockNotification();
+  }, 2000);
 }
 
 // Check for restocked items and collect them
@@ -115,6 +130,9 @@ function checkForRestocks(category, currentStock, previousStock) {
     // Add to global tracker if there are restocked items
     if (restockedItems.length > 0) {
       globalRestockTracker[category] = restockedItems;
+      console.log(
+        `Added ${restockedItems.length} restocked items to ${category} tracker`
+      );
     }
   });
 }
@@ -126,7 +144,14 @@ function sendCombinedRestockNotification() {
     globalRestockTracker.gears.length +
     globalRestockTracker.eggs.length;
 
-  if (totalRestocked === 0) return;
+  if (totalRestocked === 0) {
+    console.log("No restocked items to notify about");
+    return;
+  }
+
+  console.log(
+    `Sending combined notification for ${totalRestocked} restocked items`
+  );
 
   // Build notification message
   let message = "Items have been restocked!\n\n";
@@ -158,13 +183,25 @@ function sendCombinedRestockNotification() {
   }
 
   // Send notification
-  chrome.notifications.create({
-    type: "basic",
-    iconUrl: "icon.png",
-    title: "Grow a Garden - Stock Update!",
-    message: message.trim(),
-    priority: 1,
-  });
+  chrome.notifications.create(
+    {
+      type: "basic",
+      iconUrl: "icon.png",
+      title: "Grow a Garden - Stock Update!",
+      message: message.trim(),
+      priority: 1,
+    },
+    (notificationId) => {
+      if (chrome.runtime.lastError) {
+        console.error(
+          "Failed to create notification:",
+          chrome.runtime.lastError
+        );
+      } else {
+        console.log("Combined notification sent successfully:", notificationId);
+      }
+    }
+  );
 
   // Clear the tracker after sending
   globalRestockTracker = { seeds: [], gears: [], eggs: [] };
@@ -209,7 +246,4 @@ chrome.runtime.onStartup.addListener(() => {
   fetchAllStock();
 });
 
-// Send combined notification periodically (every 5 minutes)
-setInterval(() => {
-  sendCombinedRestockNotification();
-}, 5 * 60 * 1000);
+// Note: Notifications are sent when restocks are detected, not periodically
