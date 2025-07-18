@@ -23,7 +23,6 @@ const GearStock: React.FC = () => {
     false // Use 5-minute intervals for gears
   );
 
-  const previousGearsRef = useRef<typeof gears>([]);
   const isInitializedRef = useRef(false);
 
   // Initialize stock tracking on first load
@@ -34,15 +33,12 @@ const GearStock: React.FC = () => {
     }
   }, [loading, gears]);
 
-  // Check for restocks when items update
+  // Check for restocks when data changes
   useEffect(() => {
-    if (!loading && gears.length > 0 && previousGearsRef.current.length > 0) {
-      checkForRestocks("gears", gears).catch((error) => {
-        console.error("Error checking for restocks:", error);
-      });
+    if (gears.length > 0) {
+      checkForRestocks("gears", gears);
     }
-    previousGearsRef.current = gears;
-  }, [gears, loading]);
+  }, [gears]);
 
   const getGearImage = (gearName: string): string => {
     return getItemImage(gearName, "/images/gears", "webp");
@@ -59,22 +55,22 @@ const GearStock: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-800 rounded-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-white font-bold text-xl">GEARS STOCK</h2>
-          <div className="text-gray-300 text-sm">Loading...</div>
+      <div className="bg-gray-800 rounded-lg p-3">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-white font-bold text-sm">GEARS STOCK</h2>
+          <div className="text-gray-300 text-xs">Loading...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-white font-bold text-xl">GEARS STOCK</h2>
-        <div className="flex items-center text-gray-300 text-sm">
+    <div className="bg-gray-800 rounded-lg p-3 h-full">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-white font-bold text-sm">GEARS STOCK</h2>
+        <div className="flex items-center text-gray-300 text-xs">
           <svg
-            className="w-4 h-4 mr-2"
+            className="w-3 h-3 mr-1"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -82,24 +78,24 @@ const GearStock: React.FC = () => {
             <circle cx="12" cy="12" r="10" strokeWidth="2" />
             <polyline points="12,6 12,12 16,14" strokeWidth="2" />
           </svg>
-          UPDATES IN: {timeUntilUpdate}
+          {timeUntilUpdate}
         </div>
       </div>
 
       {isUpdating && (
-        <div className="mb-4 bg-yellow-900 border border-yellow-500 rounded-lg p-3">
+        <div className="mb-3 bg-yellow-900 border border-yellow-500 rounded-lg p-2">
           <div className="flex items-center">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-500 mr-3"></div>
-            <span className="text-yellow-200">Updating... please wait.</span>
+            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-yellow-500 mr-2"></div>
+            <span className="text-yellow-200 text-xs">Updating...</span>
           </div>
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {gears.map((gear) => (
           <div
             key={gear.name}
-            className={`bg-gray-700 rounded p-3 flex items-center justify-between ${getGearBorderClasses(
+            className={`bg-gray-700 rounded p-2 flex items-center justify-between ${getGearBorderClasses(
               gear.name
             )}`}
           >
@@ -107,15 +103,15 @@ const GearStock: React.FC = () => {
               <img
                 src={getGearImage(gear.name)}
                 alt={gear.name}
-                className="w-8 h-8 mr-3"
+                className="w-6 h-6 mr-2"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/images/gears/watering-can.webp";
                 }}
               />
-              <span className="text-white">{gear.name}</span>
+              <span className="text-white text-sm">{gear.name}</span>
             </div>
-            <span className="text-gray-300">x{gear.quantity}</span>
+            <span className="text-gray-300 text-xs">x{gear.quantity}</span>
           </div>
         ))}
       </div>

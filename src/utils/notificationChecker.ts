@@ -9,41 +9,92 @@ interface PreviousStock {
   [key: string]: number;
 }
 
+// Check if running in Chrome extension
+const isChromeExtension = typeof chrome !== "undefined" && chrome.storage;
+
 // Load saved notification preferences
-const getNotificationList = (): { [key: string]: boolean } => {
-  try {
-    const saved = localStorage.getItem("NOTIFY_LIST");
-    return saved ? JSON.parse(saved) : {};
-  } catch {
-    return {};
+const getNotificationList = (): Promise<{ [key: string]: boolean }> => {
+  if (isChromeExtension) {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(["NOTIFY_LIST"], (result) => {
+        resolve(result.NOTIFY_LIST || {});
+      });
+    });
+  } else {
+    // Fallback to localStorage for development
+    try {
+      const saved = localStorage.getItem("NOTIFY_LIST");
+      return Promise.resolve(saved ? JSON.parse(saved) : {});
+    } catch {
+      return Promise.resolve({});
+    }
   }
 };
 
 // Load previous stock state
-const getPreviousStock = (category: string): PreviousStock => {
-  try {
-    const saved = localStorage.getItem(
-      `PREVIOUS_${category.toUpperCase()}_STOCK`
-    );
-    return saved ? JSON.parse(saved) : {};
-  } catch {
-    return {};
+const getPreviousStock = (category: string): Promise<PreviousStock> => {
+  if (isChromeExtension) {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(
+        [`PREVIOUS_${category.toUpperCase()}_STOCK`],
+        (result) => {
+          resolve(result[`PREVIOUS_${category.toUpperCase()}_STOCK`] || {});
+        }
+      );
+    });
+  } else {
+    // Fallback to localStorage for development
+    try {
+      const saved = localStorage.getItem(
+        `PREVIOUS_${category.toUpperCase()}_STOCK`
+      );
+      return Promise.resolve(saved ? JSON.parse(saved) : {});
+    } catch {
+      return Promise.resolve({});
+    }
   }
 };
 
 // Save current stock state
-const saveCurrentStock = (category: string, items: StockItem[]) => {
-  try {
-    const stockState: PreviousStock = {};
-    items.forEach((item) => {
-      stockState[item.name] = item.quantity;
+const saveCurrentStock = (
+  category: string,
+  items: StockItem[]
+): Promise<void> => {
+  if (isChromeExtension) {
+    return new Promise((resolve, reject) => {
+      const stockState: PreviousStock = {};
+      items.forEach((item) => {
+        stockState[item.name] = item.quantity;
+      });
+
+      chrome.storage.local.set(
+        {
+          [`PREVIOUS_${category.toUpperCase()}_STOCK`]: stockState,
+        },
+        () => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve();
+          }
+        }
+      );
     });
-    localStorage.setItem(
-      `PREVIOUS_${category.toUpperCase()}_STOCK`,
-      JSON.stringify(stockState)
-    );
-  } catch (error) {
-    console.error(`Failed to save ${category} stock state:`, error);
+  } else {
+    // Fallback to localStorage for development
+    try {
+      const stockState: PreviousStock = {};
+      items.forEach((item) => {
+        stockState[item.name] = item.quantity;
+      });
+      localStorage.setItem(
+        `PREVIOUS_${category.toUpperCase()}_STOCK`,
+        JSON.stringify(stockState)
+      );
+      return Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 };
 
@@ -72,8 +123,8 @@ export const checkForRestocks = async (
   category: string,
   currentItems: StockItem[]
 ) => {
-  const notificationList = getNotificationList();
-  const previousStock = getPreviousStock(category);
+  const notificationList = await getNotificationList();
+  const previousStock = await getPreviousStock(category);
 
   // Check each item for restocks
   for (const item of currentItems) {
@@ -103,13 +154,13 @@ export const checkForRestocks = async (
   }
 
   // Save current state for next comparison
-  saveCurrentStock(category, currentItems);
+  await saveCurrentStock(category, currentItems);
 };
 
 // Initialize stock tracking for a category
-export const initializeStockTracking = (
+export const initializeStockTracking = async (
   category: string,
   items: StockItem[]
 ) => {
-  saveCurrentStock(category, items);
+  await saveCurrentStock(category, items);
 };
