@@ -14,6 +14,13 @@ let stockCache = {
   eggs: {},
 };
 
+// Global restock tracker
+let globalRestockTracker = {
+  seeds: [],
+  gears: [],
+  eggs: [],
+};
+
 // Initialize the extension
 chrome.runtime.onInstalled.addListener(() => {
   console.log("Grow a Garden Stock Notifications extension installed");
@@ -81,11 +88,14 @@ async function fetchStock(category) {
   }
 }
 
-// Check for restocked items and send notifications
+// Check for restocked items and collect them
 function checkForRestocks(category, currentStock, previousStock) {
   // Get notification preferences from storage
   chrome.storage.local.get(["NOTIFY_LIST"], (result) => {
     const notificationList = result.NOTIFY_LIST || {};
+
+    // Collect restocked items for this category
+    const restockedItems = [];
 
     currentStock.forEach((item) => {
       const previousQuantity = previousStock[item.name] || 0;
@@ -97,23 +107,67 @@ function checkForRestocks(category, currentStock, previousStock) {
         isItemInNotificationList(item.name, notificationList)
       ) {
         const increase = currentQuantity - previousQuantity;
-        const itemName = item.name.includes("Seeds")
-          ? item.name
-          : `${item.name} Seeds`;
-
-        console.log(`Restock detected: ${itemName} +${increase}`);
-
-        // Send notification
-        chrome.notifications.create({
-          type: "basic",
-          iconUrl: "icon.png",
-          title: "Item Restocked!",
-          message: `${itemName} has been restocked! +${increase} available.`,
-          priority: 1,
-        });
+        restockedItems.push({ name: item.name, increase });
+        console.log(`Restock detected: ${item.name} +${increase}`);
       }
     });
+
+    // Add to global tracker if there are restocked items
+    if (restockedItems.length > 0) {
+      globalRestockTracker[category] = restockedItems;
+    }
   });
+}
+
+// Send combined notification with all restocked items
+function sendCombinedRestockNotification() {
+  const totalRestocked =
+    globalRestockTracker.seeds.length +
+    globalRestockTracker.gears.length +
+    globalRestockTracker.eggs.length;
+
+  if (totalRestocked === 0) return;
+
+  // Build notification message
+  let message = "Items have been restocked!\n\n";
+
+  if (globalRestockTracker.seeds.length > 0) {
+    message += "🌱 Restocked Seeds:\n";
+    globalRestockTracker.seeds.forEach((item) => {
+      const itemName = item.name.includes("Seeds")
+        ? item.name
+        : `${item.name} Seeds`;
+      message += `  • ${itemName} (+${item.increase})\n`;
+    });
+    message += "\n";
+  }
+
+  if (globalRestockTracker.gears.length > 0) {
+    message += "🔧 Restocked Gears:\n";
+    globalRestockTracker.gears.forEach((item) => {
+      message += `  • ${item.name} (+${item.increase})\n`;
+    });
+    message += "\n";
+  }
+
+  if (globalRestockTracker.eggs.length > 0) {
+    message += "🥚 Restocked Eggs:\n";
+    globalRestockTracker.eggs.forEach((item) => {
+      message += `  • ${item.name} (+${item.increase})\n`;
+    });
+  }
+
+  // Send notification
+  chrome.notifications.create({
+    type: "basic",
+    iconUrl: "icon.png",
+    title: "Grow a Garden - Stock Update!",
+    message: message.trim(),
+    priority: 1,
+  });
+
+  // Clear the tracker after sending
+  globalRestockTracker = { seeds: [], gears: [], eggs: [] };
 }
 
 // Check if an item is in the notification list (handles name variations)
@@ -154,3 +208,8 @@ chrome.runtime.onStartup.addListener(() => {
   console.log("Extension started");
   fetchAllStock();
 });
+
+// Send combined notification periodically (every 5 minutes)
+setInterval(() => {
+  sendCombinedRestockNotification();
+}, 5 * 60 * 1000);

@@ -126,6 +126,9 @@ export const checkForRestocks = async (
   const notificationList = await getNotificationList();
   const previousStock = await getPreviousStock(category);
 
+  // Collect restocked items for this category
+  const restockedItems: { name: string; increase: number }[] = [];
+
   // Check each item for restocks
   for (const item of currentItems) {
     const previousQuantity = previousStock[item.name] || 0;
@@ -139,22 +142,91 @@ export const checkForRestocks = async (
     // If quantity increased and item is in notification list
     if (hasIncreased && isInNotificationList) {
       const increase = currentQuantity - previousQuantity;
-      const itemName = item.name.includes("Seeds")
-        ? item.name
-        : `${item.name} Seeds`;
-
-      try {
-        await sendDesktopNotification("Item Restocked!", {
-          body: `${itemName} has been restocked! +${increase} available.`,
-          icon: "/icon.png",
-          tag: `restock-${item.name}-${Date.now()}`, // Unique tag to prevent duplicate notifications
-        });
-      } catch (error) {}
+      restockedItems.push({ name: item.name, increase });
     }
   }
 
   // Save current state for next comparison
   await saveCurrentStock(category, currentItems);
+
+  // Return restocked items for this category (will be handled by the main notification sender)
+  return restockedItems;
+};
+
+// Global restock tracker
+let globalRestockTracker: {
+  seeds: { name: string; increase: number }[];
+  gears: { name: string; increase: number }[];
+  eggs: { name: string; increase: number }[];
+} = {
+  seeds: [],
+  gears: [],
+  eggs: [],
+};
+
+// Check for restocks and collect them globally
+export const checkForRestocksAndCollect = async (
+  category: string,
+  currentItems: StockItem[]
+) => {
+  const restockedItems = await checkForRestocks(category, currentItems);
+
+  if (restockedItems.length > 0) {
+    globalRestockTracker[category as keyof typeof globalRestockTracker] =
+      restockedItems;
+  }
+};
+
+// Send combined notification with all restocked items
+export const sendCombinedRestockNotification = async () => {
+  const totalRestocked =
+    globalRestockTracker.seeds.length +
+    globalRestockTracker.gears.length +
+    globalRestockTracker.eggs.length;
+
+  if (totalRestocked === 0) return;
+
+  // Build notification message
+  let message = "Items have been restocked!\n\n";
+
+  if (globalRestockTracker.seeds.length > 0) {
+    message += "🌱 Restocked Seeds:\n";
+    globalRestockTracker.seeds.forEach((item) => {
+      const itemName = item.name.includes("Seeds")
+        ? item.name
+        : `${item.name} Seeds`;
+      message += `  • ${itemName} (+${item.increase})\n`;
+    });
+    message += "\n";
+  }
+
+  if (globalRestockTracker.gears.length > 0) {
+    message += "🔧 Restocked Gears:\n";
+    globalRestockTracker.gears.forEach((item) => {
+      message += `  • ${item.name} (+${item.increase})\n`;
+    });
+    message += "\n";
+  }
+
+  if (globalRestockTracker.eggs.length > 0) {
+    message += "🥚 Restocked Eggs:\n";
+    globalRestockTracker.eggs.forEach((item) => {
+      message += `  • ${item.name} (+${item.increase})\n`;
+    });
+  }
+
+  try {
+    await sendDesktopNotification("Grow a Garden - Stock Update!", {
+      body: message.trim(),
+      icon: "/icon.png",
+      tag: `restock-combined-${Date.now()}`, // Unique tag to prevent duplicate notifications
+    });
+  } catch (error) {
+    console.error("Failed to send combined notification:", error);
+  }
+
+  // Clear the tracker after sending
+  globalRestockTracker = { seeds: [], gears: [], eggs: [] };
 };
 
 // Initialize stock tracking for a category

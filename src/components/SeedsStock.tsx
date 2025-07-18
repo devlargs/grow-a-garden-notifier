@@ -2,8 +2,9 @@ import React, { useEffect, useRef } from "react";
 import { SEEDS } from "../constants/seeds";
 import { getStockComponentClasses } from "../utils/environment";
 import {
-  checkForRestocks,
+  checkForRestocksAndCollect,
   initializeStockTracking,
+  sendCombinedRestockNotification,
 } from "../utils/notificationChecker";
 import {
   getItemBorderClasses,
@@ -38,7 +39,10 @@ const SeedsStock: React.FC = () => {
   // Check for restocks when data changes
   useEffect(() => {
     if (seeds.length > 0) {
-      checkForRestocks("seeds", seeds);
+      checkForRestocksAndCollect("seeds", seeds).then(() => {
+        // Send combined notification after checking all categories
+        sendCombinedRestockNotification();
+      });
     }
   }, [seeds]);
 
