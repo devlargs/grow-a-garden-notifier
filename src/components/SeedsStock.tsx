@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { SEEDS } from "../constants/seeds";
+import { getStockComponentClasses } from "../utils/environment";
 import {
   checkForRestocks,
   initializeStockTracking,
@@ -24,6 +25,7 @@ const SeedsStock: React.FC = () => {
   );
 
   const isInitializedRef = useRef(false);
+  const classes = getStockComponentClasses();
 
   // Initialize stock tracking on first load
   useEffect(() => {
@@ -55,20 +57,20 @@ const SeedsStock: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-800 rounded-lg p-3">
+      <div className={classes.container}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-white font-bold text-sm">SEEDS STOCK</h2>
-          <div className="text-gray-300 text-xs">Loading...</div>
+          <h2 className={classes.header}>SEEDS STOCK</h2>
+          <div className={classes.timer}>Loading...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-3 h-full">
+    <div className={classes.container}>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-white font-bold text-sm">SEEDS STOCK</h2>
-        <div className="flex items-center text-gray-300 text-xs">
+        <h2 className={classes.header}>SEEDS STOCK</h2>
+        <div className={`flex items-center ${classes.timer}`}>
           <svg
             className="w-3 h-3 mr-1"
             fill="none"
@@ -95,7 +97,7 @@ const SeedsStock: React.FC = () => {
         {seeds.map((seed) => (
           <div
             key={seed.name}
-            className={`bg-gray-700 rounded p-2 flex items-center justify-between ${getSeedBorderClasses(
+            className={`${classes.itemContainer} ${getSeedBorderClasses(
               seed.name
             )}`}
           >
@@ -103,15 +105,15 @@ const SeedsStock: React.FC = () => {
               <img
                 src={getSeedImage(seed.name)}
                 alt={seed.name}
-                className="w-6 h-6 mr-2"
+                className={classes.itemImage}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/images/seeds/default-seed.png";
                 }}
               />
-              <span className="text-white text-sm">{seed.name}</span>
+              <span className={classes.itemText}>{seed.name}</span>
             </div>
-            <span className="text-gray-300 text-xs">x{seed.quantity}</span>
+            <span className={classes.itemQuantity}>x{seed.quantity}</span>
           </div>
         ))}
       </div>

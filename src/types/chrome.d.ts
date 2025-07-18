@@ -11,6 +11,7 @@ declare global {
       lastError?: any;
       onMessage?: any;
       sendMessage?: any;
+      id?: string;
     };
     notifications: {
       create: (options: {

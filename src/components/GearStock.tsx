@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { GEARS } from "../constants/gears";
+import { getStockComponentClasses } from "../utils/environment";
 import {
   checkForRestocks,
   initializeStockTracking,
@@ -24,6 +25,7 @@ const GearStock: React.FC = () => {
   );
 
   const isInitializedRef = useRef(false);
+  const classes = getStockComponentClasses();
 
   // Initialize stock tracking on first load
   useEffect(() => {
@@ -55,20 +57,20 @@ const GearStock: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-800 rounded-lg p-3">
+      <div className={classes.container}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-white font-bold text-sm">GEARS STOCK</h2>
-          <div className="text-gray-300 text-xs">Loading...</div>
+          <h2 className={classes.header}>GEARS STOCK</h2>
+          <div className={classes.timer}>Loading...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-3 h-full">
+    <div className={classes.container}>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-white font-bold text-sm">GEARS STOCK</h2>
-        <div className="flex items-center text-gray-300 text-xs">
+        <h2 className={classes.header}>GEARS STOCK</h2>
+        <div className={`flex items-center ${classes.timer}`}>
           <svg
             className="w-3 h-3 mr-1"
             fill="none"
@@ -95,7 +97,7 @@ const GearStock: React.FC = () => {
         {gears.map((gear) => (
           <div
             key={gear.name}
-            className={`bg-gray-700 rounded p-2 flex items-center justify-between ${getGearBorderClasses(
+            className={`${classes.itemContainer} ${getGearBorderClasses(
               gear.name
             )}`}
           >
@@ -103,15 +105,15 @@ const GearStock: React.FC = () => {
               <img
                 src={getGearImage(gear.name)}
                 alt={gear.name}
-                className="w-6 h-6 mr-2"
+                className={classes.itemImage}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/images/gears/watering-can.webp";
                 }}
               />
-              <span className="text-white text-sm">{gear.name}</span>
+              <span className={classes.itemText}>{gear.name}</span>
             </div>
-            <span className="text-gray-300 text-xs">x{gear.quantity}</span>
+            <span className={classes.itemQuantity}>x{gear.quantity}</span>
           </div>
         ))}
       </div>

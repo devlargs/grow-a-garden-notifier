@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { EGGS } from "../constants/eggs";
+import { getStockComponentClasses } from "../utils/environment";
 import {
   checkForRestocks,
   initializeStockTracking,
@@ -24,6 +25,7 @@ const EggStock: React.FC = () => {
   );
 
   const isInitializedRef = useRef(false);
+  const classes = getStockComponentClasses();
 
   // Initialize stock tracking on first load
   useEffect(() => {
@@ -55,20 +57,20 @@ const EggStock: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-800 rounded-lg p-3">
+      <div className={classes.container}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-white font-bold text-sm">EGGS STOCK</h2>
-          <div className="text-gray-300 text-xs">Loading...</div>
+          <h2 className={classes.header}>EGGS STOCK</h2>
+          <div className={classes.timer}>Loading...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-3 h-full">
+    <div className={classes.container}>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-white font-bold text-sm">EGGS STOCK</h2>
-        <div className="flex items-center text-gray-300 text-xs">
+        <h2 className={classes.header}>EGGS STOCK</h2>
+        <div className={`flex items-center ${classes.timer}`}>
           <svg
             className="w-3 h-3 mr-1"
             fill="none"
@@ -95,7 +97,7 @@ const EggStock: React.FC = () => {
         {eggs.map((egg) => (
           <div
             key={egg.name}
-            className={`bg-gray-700 rounded p-2 flex items-center justify-between ${getEggBorderClasses(
+            className={`${classes.itemContainer} ${getEggBorderClasses(
               egg.name
             )}`}
           >
@@ -103,15 +105,15 @@ const EggStock: React.FC = () => {
               <img
                 src={getEggImage(egg.name)}
                 alt={egg.name}
-                className="w-6 h-6 mr-2"
+                className={classes.itemImage}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/images/eggs/common-egg.webp";
                 }}
               />
-              <span className="text-white text-sm">{egg.name}</span>
+              <span className={classes.itemText}>{egg.name}</span>
             </div>
-            <span className="text-gray-300 text-xs">x{egg.quantity}</span>
+            <span className={classes.itemQuantity}>x{egg.quantity}</span>
           </div>
         ))}
       </div>
