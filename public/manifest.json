@@ -11,7 +11,11 @@
       "128": "icon.png"
     }
   },
-  "permissions": ["notifications"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["notifications", "storage", "alarms"],
+  "host_permissions": ["https://gagapi.onrender.com/*"],
   "icons": {
     "16": "icon.png",
     "48": "icon.png",

@@ -25,25 +25,31 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <div className="mx-auto max-w-7xl">
-        <h1 className="text-white font-bold text-3xl mb-8 text-center mt-10">
+    <div className="w-[800px] h-[600px] bg-gray-900 p-4 overflow-hidden">
+      <div className="h-full flex flex-col">
+        <h1 className="text-white font-bold text-xl mb-4 text-center">
           Grow a Garden Stock Notifications
         </h1>
 
-        <div className="text-center mb-8">
+        <div className="text-center mb-4">
           <button
             onClick={handleNotification}
-            className="bg-gray-700 border border-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
+            className="bg-gray-700 border border-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm"
           >
             Create Notification
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <SeedsStock />
-          <GearStock />
-          <EggStock />
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 overflow-hidden">
+          <div className="overflow-y-auto custom-scrollbar">
+            <SeedsStock />
+          </div>
+          <div className="overflow-y-auto custom-scrollbar">
+            <GearStock />
+          </div>
+          <div className="overflow-y-auto custom-scrollbar">
+            <EggStock />
+          </div>
         </div>
       </div>
 
