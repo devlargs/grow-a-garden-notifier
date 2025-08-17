@@ -104,4 +104,8 @@ export const SEEDS: Array<{
     name: "Elder Strawberry",
     variant: "Prismatic",
   },
+  {
+    name: "Romanesco",
+    variant: "Prismatic",
+  },
 ];
